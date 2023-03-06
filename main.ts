@@ -63,7 +63,7 @@ export default class UniPublisherPlugin extends Plugin {
 				const response = await fetch(serverUrl, {
 					method: "POST",
 					body: data,
-					mode: 'cors',
+					mode: 'no-cors',
 				})
 				if (response.status === 204) {
 					notice.hide();
