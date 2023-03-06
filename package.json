@@ -12,13 +12,19 @@
 	"author": "",
 	"license": "MIT",
 	"devDependencies": {
+		"@types/adm-zip": "^0.5.0",
 		"@types/node": "^16.11.6",
 		"@typescript-eslint/eslint-plugin": "5.29.0",
 		"@typescript-eslint/parser": "5.29.0",
+		"adm-zip": "^0.5.10",
 		"builtin-modules": "3.3.0",
 		"esbuild": "0.17.3",
 		"obsidian": "latest",
 		"tslib": "2.4.0",
 		"typescript": "4.7.4"
+	},
+	"dependencies": {
+		"@types/archiver": "^5.3.1",
+		"archiver": "^5.3.1"
 	}
 }
