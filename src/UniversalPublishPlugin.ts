@@ -53,9 +53,8 @@ export class UniversalPublishPlugin extends Plugin {
 				const response = await fetch(serverUrl, {
 					method: "POST",
 					body: data,
-					mode: 'no-cors',
 				})
-				if (response.status === 204) {
+				if (response.ok) {
 					notice.hide();
 					new UniversalPublishNotice('Published!');
 				} else {
