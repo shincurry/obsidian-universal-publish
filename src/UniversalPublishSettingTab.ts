@@ -29,17 +29,20 @@ export class UniversalPublishSettingTab extends PluginSettingTab {
 		new Setting(containerEl)
 			.setName('Server URL')
 			.setDesc('The server url of publishing api.')
-			.addText(text => text
-				.setPlaceholder('Enter your secret')
-				.setValue(this.plugin.settings.serverUrl)
-				.onChange(async (value) => {
-					this.plugin.settings.serverUrl = value;
-					await this.plugin.saveSettings();
-				}));
+			.addText(text => {
+				text.inputEl.style.width = "100%";
+				text
+					.setPlaceholder('Enter your secret')
+					.setValue(this.plugin.settings.serverUrl)
+					.onChange(async (value) => {
+						this.plugin.settings.serverUrl = value;
+						await this.plugin.saveSettings();
+					});
+			})
 
 		new Setting(containerEl)
 			.setName('Include Config Directory')
-			.setDesc('Whether to include Obsidian Config Directory (.obsidian) When sending content to server.')
+			.setDesc('Whether to include Obsidian Config Directory (.obsidian) When sending content to server. Note that you need to ensure that the server you are using is secure and trusted, as the .obsidian folder may contain authentication information.')
 			.addToggle(toggle => toggle
 				.setValue(this.plugin.settings.includeConfigDir)
 				.onChange(async (value) => {
