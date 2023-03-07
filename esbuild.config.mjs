@@ -2,6 +2,9 @@ import esbuild from "esbuild";
 import process from "process";
 import builtins from "builtin-modules";
 import { copy } from 'esbuild-plugin-copy';
+import fs from 'fs';
+import path from "path";
+import url from 'url';
 
 const banner =
 `/*
@@ -46,6 +49,19 @@ const context = await esbuild.context({
 				{ from: ['./src/styles/styles.css'], to: ['./styles.css'] },
 			]
 		}),
+		...(prod ? [
+			{
+				name: 'create-hotreload-file',
+				setup: (build) => {
+					if (prod) return;
+					build.onEnd(() => {
+						const cwd = path.dirname(url.fileURLToPath(import.meta.url))
+						const fd = fs.openSync(path.join(cwd, 'build', '.hotreload'), 'w');
+						fs.closeSync(fd);
+					})
+				}
+			}
+		] : []),
 	]
 });
 
