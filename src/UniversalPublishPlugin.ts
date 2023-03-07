@@ -1,72 +1,34 @@
-import { FileSystemAdapter, Plugin } from 'obsidian';
-import AdmZip from 'adm-zip';
-import { DEFAULT_SETTINGS, UniversalPublishSettings, UniversalPublishSettingTab } from './UniversalPublishSettingTab';
-import { zipAddInsideFilesInFolderRecursive } from './utils/zip';
-import { UniversalPublishNotice } from './UniversalPublishNotice';
+import { App, Plugin, PluginManifest } from 'obsidian';
+import { DEFAULT_SETTINGS, UniversalPublishSettingTab } from './UniversalPublishSettingTab';
+import type { UniversalPublishSettings } from './UniversalPublishSettingTab';
+import { UniversalPublishCore } from './UniversalPublishCore';
 
 
 export class UniversalPublishPlugin extends Plugin {
 	settings: UniversalPublishSettings;
+	core: UniversalPublishCore;
+
+	constructor(app: App, manifest: PluginManifest) {
+		super(app, manifest);
+		this.core = new UniversalPublishCore(app, this);
+	}
 
 	async onload() {
 		await this.loadSettings();
 
 		// This creates an icon in the left ribbon.
 		this.addRibbonIcon('send', 'Publish', async (evt: MouseEvent) => {
-			if (!this.settings.serverUrl) {
-				new UniversalPublishNotice('Publish server url not set.');
-				return;
-			}
-
-			// Called when the user clicks the icon.
-			const notice = new UniversalPublishNotice('Collecting content...', 60_000);
-			const vaultPath = (() => {
-				const adapter = app.vault.adapter;
-				if (adapter instanceof FileSystemAdapter) {
-						return adapter.getBasePath();
-				}
-				return null;
-			})();
-			if (!vaultPath) {
-				notice.hide();
-				new UniversalPublishNotice('Vault not found.');
-				return;
-			}
-
-			const zip = new AdmZip();
-			await zipAddInsideFilesInFolderRecursive(zip, vaultPath, (filename) => {
-				if (filename.endsWith('.DS_Store')) return false;
-				if (!this.settings.includeConfigDir && filename.startsWith(this.app.vault.configDir)) {
-					return false;
-				}
-				return true;
-			});
-
-			notice.setMessage('Publishing content...')
-
-			try {
-				const serverUrl = new URL("/publish", this.settings.serverUrl)
-				const data = new FormData()
-				data.append('file', new File([zip.toBuffer()], "content.zip", {
-					type: "application/zip"
-				}))
-				const response = await fetch(serverUrl, {
-					method: "POST",
-					body: data,
-				})
-				if (response.ok) {
-					notice.hide();
-					new UniversalPublishNotice('Published!');
-				} else {
-					notice.hide();
-					new UniversalPublishNotice('Publish failed!');
-				}
-			} catch (error) {
-				notice.hide();
-				new UniversalPublishNotice('Publish failed!');
-			}
+			await this.core.publish()
 		});
 
+		// This adds a complex command that can check whether the current state of the app allows execution of the command
+		this.addCommand({
+			id: 'publish',
+			name: 'Publish content',
+			callback: async () => {
+				await this.core.publish()
+			}
+		});
 
 		// This adds a settings tab so the user can configure various aspects of the plugin
 		this.addSettingTab(new UniversalPublishSettingTab(this.app, this));
