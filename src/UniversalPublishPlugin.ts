@@ -36,7 +36,7 @@ export class UniversalPublishPlugin extends Plugin {
 			const zip = new AdmZip();
 			await zipAddInsideFilesInFolderRecursive(zip, vaultPath, (filename) => {
 				if (filename.endsWith('.DS_Store')) return false;
-				if (!this.settings.includeConfigDir && filename.startsWith('.obsidian')) {
+				if (!this.settings.includeConfigDir && filename.startsWith(this.app.vault.configDir)) {
 					return false;
 				}
 				return true;
