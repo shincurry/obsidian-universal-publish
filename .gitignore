@@ -1,5 +1,5 @@
 # vscode
-.vscode 
+.vscode
 
 # Intellij
 *.iml
@@ -22,4 +22,5 @@ data.json
 .DS_Store
 
 # build
-main.js
+build
+dist
