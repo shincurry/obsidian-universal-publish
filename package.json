@@ -1,7 +1,7 @@
 {
-	"name": "obsidian-sample-plugin",
+	"name": "obsidian-universal-publish",
 	"version": "1.0.0",
-	"description": "This is a sample plugin for Obsidian (https://obsidian.md)",
+	"description": "Publish Obsidian notes through server.",
 	"main": "main.js",
 	"scripts": {
 		"dev": "node esbuild.config.mjs",
