@@ -1,8 +1,17 @@
 import { App, FileSystemAdapter } from 'obsidian';
-import AdmZip from 'adm-zip';
-import { zipAddInsideFilesInFolderRecursive } from './utils/zip';
 import { UniversalPublishNotice } from './UniversalPublishNotice';
 import { UniversalPublishPlugin } from './UniversalPublishPlugin';
+import { getFileMetaList } from './utils/file';
+import fs from 'fs';
+import util from 'util';
+import JSZip from 'jszip';
+
+const readFile = util.promisify(fs.readFile);
+
+export type VaultFile = {
+  sha1: string;
+  path: string;
+}
 
 export class UniversalPublishCore {
 
@@ -44,23 +53,54 @@ export class UniversalPublishCore {
       return;
     }
 
-    const zip = new AdmZip();
-    await zipAddInsideFilesInFolderRecursive(zip, vaultPath, (filename) => {
+    const fileMetaList = await getFileMetaList(vaultPath, (filename: string) => {
       if (filename.endsWith('.DS_Store')) return false;
       if (!this.plugin.settings.includeConfigDir && filename.startsWith(this.app.vault.configDir)) {
         return false;
       }
       return true;
-    });
+    })
+    const prepared = await (async (): Promise<{ diff: { cached: VaultFile[]; uncached: VaultFile[] } } | null> => {
+      try {
+        const serverURL = new URL("/publish/prepare", this.plugin.settings.serverUrl)
+        const filelist = fileMetaList.map((i) => ({ sha1: i.sha1, path: i.relativeFilePath }))
+        const response = await fetch(serverURL, {
+          method: "POST",
+          body: JSON.stringify({ filelist }),
+          headers: {
+            "Content-Type": "application/json",
+          },
+        })
+        if (response.ok) {
+          return await response.json()
+        } else {
+          return null
+        }
+      } catch (error) {
+        return null
+      }
+    })()
+    const uncachedSha1ListSet = new Set<string>(prepared?.diff.uncached.map((i) => i.sha1))
+    const uncachedFileList = fileMetaList.filter((meta) => {
+      return uncachedSha1ListSet.has(meta.sha1);
+    })
+
+    const zip = new JSZip();
+    for (const meta of uncachedFileList) {
+      const buffer = await readFile(meta.localFilePath)
+      zip.file(meta.relativeFilePath, buffer)
+    }
 
     notice.setMessage('Publishing content...')
 
     try {
+      const zipBuffer = await zip.generateAsync({ type: 'nodebuffer' })
       const serverURL = new URL("/publish", this.plugin.settings.serverUrl)
       const data = new FormData()
-      data.append('file', new File([zip.toBuffer()], "content.zip", {
+      data.append('zippack', new File([zipBuffer], "content.zip", {
         type: "application/zip"
       }))
+      if (prepared?.diff) data.append('diff', JSON.stringify(prepared.diff))
       const response = await fetch(serverURL, {
         method: "POST",
         body: data,
