@@ -3,6 +3,7 @@ import { UniversalPublishNotice } from './UniversalPublishNotice';
 import { UniversalPublishPlugin } from './UniversalPublishPlugin';
 import { getFileMetaList } from './utils/file';
 import fs from 'fs';
+import path from 'path';
 import util from 'util';
 import JSZip from 'jszip';
 
@@ -88,6 +89,7 @@ export class UniversalPublishCore {
     const zip = new JSZip();
     for (const meta of uncachedFileList) {
       const buffer = await readFile(meta.localFilePath)
+      meta.relativeFilePath.split(path.sep).join('/')
       zip.file(meta.relativeFilePath, buffer)
     }
 
