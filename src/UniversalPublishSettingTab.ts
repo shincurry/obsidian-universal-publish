@@ -4,12 +4,15 @@ import { UniversalPublishPlugin } from './UniversalPublishPlugin';
 export interface UniversalPublishSettings {
 	serverUrl: string;
 	password: string;
+
+	publishId: string;
 	includeConfigDir: boolean;
 }
 
 export const DEFAULT_SETTINGS: UniversalPublishSettings = {
 	serverUrl: '',
 	password: '',
+	publishId: '',
 	includeConfigDir: false,
 }
 
@@ -50,12 +53,24 @@ export class UniversalPublishSettingTab extends PluginSettingTab {
 				text.inputEl.type = "password";
 				text
 					.setPlaceholder('Enter your password')
-					.setValue(this.plugin.settings.password || '')
+					.setValue(this.plugin.settings.password)
 					.onChange(async (value) => {
 						this.plugin.settings.password = value;
 						await this.plugin.saveSettings();
 					});
 			})
+
+		new Setting(containerEl)
+			.setName('Publish ID')
+			.setDesc('Publish unique ID, allow only alphanumeric characters and \'-\', /[a-zA-Z0-9-]+/')
+			.addText(text => {
+				text
+					.setValue(this.plugin.settings.publishId)
+					.onChange(async (value) => {
+						this.plugin.settings.publishId = value;
+						await this.plugin.saveSettings();
+					});
+			});
 
 		new Setting(containerEl)
 			.setName('Include Config Directory')

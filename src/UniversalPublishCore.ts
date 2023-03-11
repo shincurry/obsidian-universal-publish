@@ -38,6 +38,10 @@ export class UniversalPublishCore {
       new UniversalPublishNotice('Publish server url not set.');
       return;
     }
+    if (!this.plugin.settings.publishId) {
+      new UniversalPublishNotice('Publish ID not set.');
+      return;
+    }
 
     // Called when the user clicks the icon.
     const notice = new UniversalPublishNotice('Collecting content...', 60_000);
@@ -63,7 +67,7 @@ export class UniversalPublishCore {
     })
     const prepared = await (async (): Promise<{ diff: { cached: VaultFile[]; uncached: VaultFile[] } } | null> => {
       try {
-        const serverURL = new URL("/publish/prepare", this.plugin.settings.serverUrl)
+        const serverURL = new URL(`/publish/${this.plugin.settings.publishId}/prepare`, this.plugin.settings.serverUrl)
         const filelist = fileMetaList.map((i) => ({ sha1: i.sha1, path: i.relativeFilePath }))
         const response = await fetch(serverURL, {
           method: "POST",
@@ -98,7 +102,7 @@ export class UniversalPublishCore {
 
     try {
       const zipBuffer = await zip.generateAsync({ type: 'nodebuffer' })
-      const serverURL = new URL("/publish", this.plugin.settings.serverUrl)
+      const serverURL = new URL(`/publish/${this.plugin.settings.publishId}`, this.plugin.settings.serverUrl)
       const data = new FormData()
       data.append('zippack', new File([zipBuffer], "content.zip", {
         type: "application/zip"
