@@ -3,11 +3,13 @@ import { UniversalPublishPlugin } from './UniversalPublishPlugin';
 
 export interface UniversalPublishSettings {
 	serverUrl: string;
+	password: string;
 	includeConfigDir: boolean;
 }
 
 export const DEFAULT_SETTINGS: UniversalPublishSettings = {
 	serverUrl: '',
+	password: '',
 	includeConfigDir: false,
 }
 
@@ -28,7 +30,7 @@ export class UniversalPublishSettingTab extends PluginSettingTab {
 
 		new Setting(containerEl)
 			.setName('Server URL')
-			.setDesc('The server url of publishing api.')
+			.setDesc('The url of server api.')
 			.addText(text => {
 				text.inputEl.style.width = "100%";
 				text
@@ -36,6 +38,21 @@ export class UniversalPublishSettingTab extends PluginSettingTab {
 					.setValue(this.plugin.settings.serverUrl)
 					.onChange(async (value) => {
 						this.plugin.settings.serverUrl = value;
+						await this.plugin.saveSettings();
+					});
+			})
+
+		new Setting(containerEl)
+			.setName('Password')
+			.setDesc('The password of server api.')
+			.addText(text => {
+				text.inputEl.style.width = "100%";
+				text.inputEl.type = "password";
+				text
+					.setPlaceholder('Enter your password')
+					.setValue(this.plugin.settings.password || '')
+					.onChange(async (value) => {
+						this.plugin.settings.password = value;
 						await this.plugin.saveSettings();
 					});
 			})

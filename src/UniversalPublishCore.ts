@@ -69,6 +69,7 @@ export class UniversalPublishCore {
           method: "POST",
           body: JSON.stringify({ filelist }),
           headers: {
+            ...(this.plugin.settings.password !== '' ? { "x-password": this.plugin.settings.password } : {}),
             "Content-Type": "application/json",
           },
         })
@@ -106,6 +107,9 @@ export class UniversalPublishCore {
       const response = await fetch(serverURL, {
         method: "POST",
         body: data,
+        headers: {
+          ...(this.plugin.settings.password !== '' ? { "x-password": this.plugin.settings.password } : {}),
+        },
       })
       if (response.ok) {
         notice.hide();
